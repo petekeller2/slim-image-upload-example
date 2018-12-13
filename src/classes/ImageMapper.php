@@ -17,7 +17,7 @@ class ImageMapper extends Mapper {
     public function getSortedImages($lat = 0, $lon = 0, $limit = 20, $distance = 50) {
 
 
-        $sql = "SELECT images.id, locations.lon, locations.lat, images.image_desc, ( 3959 * acos( cos( radians(:lat) ) * cos( radians( locations.lat ) ) * cos( radians( locations.lon ) - radians(:lon) ) + sin( radians(:lat) ) * sin( radians( locations.lat ) ) ) ) AS distance FROM locations INNER JOIN images ON images.location_id = locations.id HAVING distance < :distance ORDER BY distance LIMIT 0 , :limit";
+        $sql = "SELECT images.id, locations.lon, locations.lat, images.image_desc, images.image_path, images.created, ( 3959 * acos( cos( radians(:lat) ) * cos( radians( locations.lat ) ) * cos( radians( locations.lon ) - radians(:lon) ) + sin( radians(:lat) ) * sin( radians( locations.lat ) ) ) ) AS distance FROM locations INNER JOIN images ON images.location_id = locations.id HAVING distance < :distance ORDER BY distance LIMIT 0 , :limit";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':limit', intval($limit, 10), PDO::PARAM_INT);
         $stmt->bindParam(':lat', $lat, PDO::PARAM_STR);
@@ -42,6 +42,19 @@ class ImageMapper extends Mapper {
 	    return new ImageEntity($stmt->fetch());
     }
 
-
+    public function save(ImageEntity $image) {
+        $sql = "insert into images
+            (image_desc, location_id, image_path) values
+            (:image_desc, :location_id, :image_path)";
+        $stmt = $this->db->prepare($sql);
+        $result = $stmt->execute([
+            "image_desc" => $image->getImageDesc(),
+            "location_id" => $image->getLocationId(),
+            "image_path" => $image->getImagePath(),
+        ]);
+        if(!$result) {
+            throw new Exception("could not save record");
+        }
+    }
 
 }

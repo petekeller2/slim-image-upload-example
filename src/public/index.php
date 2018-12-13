@@ -12,10 +12,12 @@ $config['db']['host']   = "localhost";
 $config['db']['user']   = "root";
 $config['db']['pass']   = "root";
 $config['db']['dbname'] = "imageupload";
+$config['displayErrorDetails'] = true;
 
 
 $app = new \Slim\App(["settings" => $config]);
 $container = $app->getContainer();
+$container['upload_directory'] ='../../uploaded_files/';
 
 // $container['view'] = new \Slim\Views\PhpRenderer("../templates/");
 
@@ -49,9 +51,10 @@ $app->get('/images/', function (Request $request, Response $response) {
 });
 
 $app->post('/image/new', function (Request $request, Response $response) {
-    $data = $request->getParsedBody();
-    $image_data = [];
+    $data = $request->getParsedBody();	
+    $image_data = array();
     $image_data['image_desc'] = filter_var($data['image_desc'], FILTER_SANITIZE_STRING);
+    $location_data = array();
     $location_data['location_desc'] = filter_var($data['location_desc'], FILTER_SANITIZE_STRING);
     $location_data['lat'] = (float)$data['lat'];
     $location_data['lon'] = (float)$data['lon'];
@@ -59,12 +62,26 @@ $app->post('/image/new', function (Request $request, Response $response) {
     $location = new LocationEntity($location_data);
     $location_mapper = new LocationMapper($this->db);
     $location_mapper->save($location);
-    $image_data['location_id'] = $location->getId();
+    // $image_data['location_id'] = $location->getId();
+
+    /*
+    $sql = "INSERT INTO locations (lat, lon, location_desc) VALUES (:lat, :lon, :location_desc)";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':lat', $location_data['lat']);
+    $stmt->bindParam(':lon', $location_data['lon']);
+    $stmt->bindParam(':location_desc', $location_data['location_desc']);
+    $stmt->execute();
+     */
+
+    $sql = "SELECT id FROM locations ORDER BY id desc";
+    $stmt = $this->db->query($sql);
+    $row = $stmt->fetch();
+    $image_data['location_id'] = $row['id'];
 
     $directory = $this->get('upload_directory');
 
     $uploadedFiles = $request->getUploadedFiles();
-
+    var_dump($uploadedFiles);
     $uploadedFile = $uploadedFiles['image_file'];
     if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
         $filename = moveUploadedFile($directory, $uploadedFile);

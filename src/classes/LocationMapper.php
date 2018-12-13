@@ -1,6 +1,6 @@
 <?php
 
-class LocationtMapper extends Mapper {
+class LocationMapper extends Mapper {
 
     public function getLocationByDesc($desc) {
 
@@ -10,5 +10,20 @@ class LocationtMapper extends Mapper {
         $stmt->execute(["location_desc" => $desc]);
 
         return new LocationEntity($stmt->fetch());
+    }
+
+    public function save(LocationEntity $location) {
+        $sql = "insert into locations
+            (lat, lon, location_desc) values
+            (:lat, :lon, :location_desc)";
+        $stmt = $this->db->prepare($sql);
+        $result = $stmt->execute([
+            "lat" => $location->getLat(),
+            "lon" => $location->getLon(),
+            "location_desc" => $location->getLocationDesc(),
+        ]);
+        if(!$result) {
+            throw new Exception("could not save record");
+        }
     }
 }

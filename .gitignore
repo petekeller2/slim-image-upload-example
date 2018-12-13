@@ -1,5 +1,6 @@
 vendor/*
 logs/*
+uploaded_files/*
 
 # ignore IDE/hidden/OS cache files
 .*
