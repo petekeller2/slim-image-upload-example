@@ -62,16 +62,6 @@ $app->post('/image/new', function (Request $request, Response $response) {
     $location = new LocationEntity($location_data);
     $location_mapper = new LocationMapper($this->db);
     $location_mapper->save($location);
-    // $image_data['location_id'] = $location->getId();
-
-    /*
-    $sql = "INSERT INTO locations (lat, lon, location_desc) VALUES (:lat, :lon, :location_desc)";
-    $stmt = $this->db->prepare($sql);
-    $stmt->bindParam(':lat', $location_data['lat']);
-    $stmt->bindParam(':lon', $location_data['lon']);
-    $stmt->bindParam(':location_desc', $location_data['location_desc']);
-    $stmt->execute();
-     */
 
     $sql = "SELECT id FROM locations ORDER BY id desc";
     $stmt = $this->db->query($sql);
@@ -81,7 +71,6 @@ $app->post('/image/new', function (Request $request, Response $response) {
     $directory = $this->get('upload_directory');
 
     $uploadedFiles = $request->getUploadedFiles();
-    var_dump($uploadedFiles);
     $uploadedFile = $uploadedFiles['image_file'];
     if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
         $filename = moveUploadedFile($directory, $uploadedFile);
